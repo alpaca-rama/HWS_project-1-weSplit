@@ -10,49 +10,34 @@ import SwiftUI
 struct ContentView: View {
     @State private var checkAmount = 0.0
     @State private var numberOfPeople = 0
-    @State private var tipPercentage = 0
-    
+    @State private var tipPercentage = 20
     @FocusState private var amountIsFocused: Bool
     
-    let tipPercentages = [0, 10, 15, 20, 25]
+    let tipPercentages = [10, 15, 20, 25, 0]
+    
+    // Project 1 - Challange 2:
+    // Add another section showing the total amount for the check –
+    // i.e., the original amount plus tip value, without dividing by the number of people.
+    var grandTotal: Double {
+        let tipSelection = Double(tipPercentage)
+        let tipValue = checkAmount / 100 * tipSelection
+        
+        return checkAmount + tipValue
+    }
     
     var totalPerPerson: Double {
-        let peopleCount = Double(numberOfPeople + 2)
-        let tipSelection = Double(tipPercentage)
-        
-        let tipValue = checkAmount / 100 * tipSelection
-        let grandTotal = checkAmount + tipValue
-        let amountPerPerson = grandTotal / peopleCount
-        
-        return amountPerPerson
+        return grandTotal / Double(numberOfPeople + 2)
     }
     
-    var tipAmount: Double {
-//        let peopleCount = Double(numberOfPeople + 2)
-        let tipSelection = Double(tipPercentage)
-        
-        let tipValue = checkAmount / 100 * tipSelection
-        
-        return tipValue
-    }
-    
-    var totalAmount: Double {
-        let total = tipAmount + checkAmount
-        
-        return total
-    }
-    
-    var localCurrency: FloatingPointFormatStyle<Double>.Currency {
-        let currentCode = Locale.current.currencyCode ?? "USD"
-        
-        return FloatingPointFormatStyle<Double>.Currency(code: currentCode)
-    }
+    // Project 1 - Extra Challange:
+    // Create a new property to store the currency formatter to utilize in the other locations.
+    var localCurrency: FloatingPointFormatStyle<Double>.Currency = .currency(code: Locale.current.currencyCode ?? "USD")
     
     var body: some View {
-        NavigationView{
+        NavigationView {
             Form {
                 Section {
-                    TextField("Amount", value: $checkAmount, format: .currency(code: Locale.current.currencyCode ?? "USD"))
+                    TextField("Amount", value: $checkAmount, format: localCurrency)
                         .keyboardType(.decimalPad)
                         .focused($amountIsFocused)
                     
@@ -64,29 +49,30 @@ struct ContentView: View {
                 }
                 
                 Section {
+                    // Project 1 - Challange 3:
+                    // Change the tip percentage picker to show a new screen rather than using a segmented control,
+                    // and give it a wider range of options – everything from 0% to 100%.
+                    // Tip: use the range 0..<101 for your range rather than a fixed array.
                     Picker("Tip percentage", selection: $tipPercentage) {
                         ForEach(0..<101) {
-                            Text("\($0)%")
+                            Text($0, format: .percent)
                         }
                     }
-//                    .pickerStyle(.segmented)
                 } header: {
-                    Text("How much tip do you want to leave")
+                    Text("How much tip do you want to leave?")
                 }
                 
+                // Project 1 - Challange 2
                 Section {
-                    Text("Original Amount: \(checkAmount, format: localCurrency)")
-                    Text("Tip Percentage: \(tipPercentage, format: .percent)")
-                    Text("Tip Amount: \(tipAmount, format: localCurrency)")
-                    Text("Total Amount: \(totalAmount, format: localCurrency)")
+                    Text(grandTotal, format: localCurrency)
                 } header: {
-                    Text("Details")
+                    Text("Total Amount")
                 }
+                
                 
                 Section {
                     Text(totalPerPerson, format: localCurrency)
-                        .foregroundColor(tipPercentages[tipPercentage] == 0 ? .red : .black)
-                } header: {
+                } header: { // Project 1 - Challange 1: Add a header to the third section, saying “Amount per person”
                     Text("Amount per person")
                 }
             }
@@ -94,6 +80,7 @@ struct ContentView: View {
             .toolbar {
                 ToolbarItemGroup(placement: .keyboard) {
                     Spacer()
+                    
                     Button("Done") {
                         amountIsFocused = false
                     }
